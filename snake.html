@@ -205,8 +205,10 @@
       return;
     }
 
-    // Self collision
-    if (snake.some(s => s.x === head.x && s.y === head.y)) {
+    // A move into the current tail is legal when the tail moves away this tick.
+    const willEat = head.x === food.x && head.y === food.y;
+    const occupiedBody = willEat ? snake : snake.slice(0, -1);
+    if (occupiedBody.some(s => s.x === head.x && s.y === head.y)) {
       gameOver();
       return;
     }
@@ -214,7 +216,7 @@
     snake.unshift(head);
 
     // Eat food
-    if (head.x === food.x && head.y === food.y) {
+    if (willEat) {
       score++;
       scoreEl.textContent = score;
       spawnFood();
@@ -273,7 +275,7 @@
   }, {passive: true});
   canvas.addEventListener('touchmove', (e) => e.preventDefault(), {passive: false});
   canvas.addEventListener('touchend', (e) => {
-    if (!touchStart || !running) return;
+    if (!touchStart || !running || !e.changedTouches[0]) return;
     const dx = e.changedTouches[0].clientX - touchStart.x;
     const dy = e.changedTouches[0].clientY - touchStart.y;
     if (Math.abs(dx) > Math.abs(dy)) {
